@@ -14,9 +14,15 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.commands.TalonBackward;
+import frc.robot.commands.TalonForward;
+import frc.robot.commands.TalonStop;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
+
+  TalonSubsystem talonSubsystem = new TalonSubsystem();
+
   private double MaxSpeed = 6; // 6 meters per second desired top speed
   private double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
 
@@ -28,7 +34,7 @@ public class RobotContainer {
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
-  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  //private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -40,13 +46,15 @@ public class RobotContainer {
             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
         ));
 
-    joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+   // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
     joystick.b().whileTrue(drivetrain
         .applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // reset the field-centric heading on left bumper press
     joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
-
+joystick.x().whileTrue(new TalonBackward(talonSubsystem));
+joystick.y().whileTrue(new TalonForward(talonSubsystem));
+joystick.a().whileTrue(new TalonStop(talonSubsystem));
     if (Utils.isSimulation()) {
       drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
